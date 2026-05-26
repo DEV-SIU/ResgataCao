@@ -1,0 +1,8 @@
+﻿*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: radial-gradient(ellipse at 50% 35%, #1e1640 0%, #09090f 100%);
+  min-height: 100svh;
+  color: #fff;
+}
