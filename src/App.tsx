@@ -81,7 +81,7 @@ export default function App() {
   return (
     <main className="page">
       <img
-        src="/logo.svg"
+        src={`${import.meta.env.BASE_URL}logo.svg`}
         alt="ResgatoCão"
         className="brand-logo"
         draggable={false}
