@@ -59,6 +59,7 @@ export default function App() {
   const [fase,      setFase]      = useState<0 | 1 | 2>(0)
   const [page,      setPage]      = useState<'p1' | 'p2'>('p1')
   const [flipPhase, setFlipPhase] = useState<'none' | 'out' | 'in' | 'cover-out' | 'cover-in'>('none')
+  const [isOverQrHotspot, setIsOverQrHotspot] = useState(false)
   const [contactToast, setContactToast] = useState<{ type: 'ok' | 'error' | 'info'; message: string; key: number } | null>(null)
   const busy = useRef(false)
   const toastKey = useRef(0)
@@ -76,6 +77,10 @@ export default function App() {
   const [L, C, R] = page === 'p2' ? P2 : P1
   const isOpen = fase > 0
   const showContactHotspots = page === 'p1' && fase === 2 && flipPhase === 'none'
+
+  useEffect(() => {
+    if (!showContactHotspots) setIsOverQrHotspot(false)
+  }, [showContactHotspots])
 
   function showToast(type: 'ok' | 'error' | 'info', message: string) {
     toastKey.current += 1
@@ -142,6 +147,23 @@ export default function App() {
     }
   }
 
+  function updateQrCursorState(event: MouseEvent<HTMLDivElement>) {
+    if (!showContactHotspots) {
+      if (isOverQrHotspot) setIsOverQrHotspot(false)
+      return
+    }
+
+    const qrHotspot = event.currentTarget.querySelector('.contact-hotspot--pix-qr')
+    if (!(qrHotspot instanceof HTMLElement)) {
+      if (isOverQrHotspot) setIsOverQrHotspot(false)
+      return
+    }
+
+    const qrRect = qrHotspot.getBoundingClientRect()
+    const nextIsOver = pointInsideRect(event.clientX, event.clientY, qrRect)
+    if (nextIsOver !== isOverQrHotspot) setIsOverQrHotspot(nextIsOver)
+  }
+
   const bookClass = joinClass(
     'book',
     isOpen && 'book--open',
@@ -154,6 +176,7 @@ export default function App() {
   const stageClass = joinClass(
     'stage',
     isOpen && 'stage--open',
+    isOverQrHotspot && 'stage--over-qr',
     flipPhase !== 'none' && 'stage--flipping',
     flipPhase === 'cover-out' && 'stage--cover-out',
     flipPhase === 'cover-in' && 'stage--cover-in',
@@ -170,7 +193,12 @@ export default function App() {
         draggable={false}
       />
 
-      <div className={stageClass} onClick={click}>
+      <div
+        className={stageClass}
+        onClick={click}
+        onMouseMove={updateQrCursorState}
+        onMouseLeave={() => setIsOverQrHotspot(false)}
+      >
         <div className="book-lift">
           <div className={bookClass}>
             <div className="panel panel-l">

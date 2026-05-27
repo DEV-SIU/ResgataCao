@@ -37,7 +37,7 @@
   perspective-origin: 50% 36%;
   --shadow-phase-spd: 1650ms;
   --shadow-phase-ease: cubic-bezier(0.1, 0.9, 0.2, 1);
-  cursor: pointer;
+  cursor: grab;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   transition: perspective-origin var(--spd) var(--ease-smooth);
@@ -45,6 +45,10 @@
 
 .stage--flipping {
   perspective-origin: 50% 50%; /* só muda a origem — transiciona suavemente */
+}
+
+.stage--over-qr {
+  cursor: pointer;
 }
 
 /* Sombra dinâmica no chão */
