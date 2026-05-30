@@ -1,7 +1,21 @@
 
 :root {
-  --pw:          clamp(140px, 17vw, 240px);
-  --ph:          calc(var(--pw) * 1489 / 703);
+  /* Proporção real da arte (703 × 1489). O folder tem 3 painéis lado a lado,
+     então a peça inteira mede 3·--pw de largura por --pw·--page-ratio de altura. */
+  --page-ratio: calc(1489 / 703);
+
+  /* Largura de UM painel = o MENOR entre o que cabe na largura e na altura da tela.
+     • Largura: ~30% da viewport por painel (3 painéis ≈ 90vw, deixando respiro lateral).
+     • Altura:  a peça aberta ocupa ~82% da altura útil; dividimos pela proporção
+                (para voltar à altura de um painel) e por 3 não é preciso aqui,
+                pois a ALTURA do folder é a de um único painel.
+     O clamp() final garante que nunca fique pequeno demais nem exagerado. */
+  --pw: clamp(
+    110px,
+    min(29vw, 80svh / var(--page-ratio)),
+    300px
+  );
+  --ph:          calc(var(--pw) * var(--page-ratio));
   --spd:         0.74s;
   --shadow-spd:  2.6s;
   --shadow-ease: cubic-bezier(0.1, 0.9, 0.2, 1);        /* começo mais cedo, final ainda suave */
@@ -316,56 +330,133 @@
   pointer-events: auto;
 }
 
+/* Durante o flip-in os botões já aparecem (girando junto com o papel), mas
+   ainda não recebem clique — só viram interativos quando o folder assenta. */
+.contact-hotspots--locked {
+  pointer-events: none;
+}
+
+/* Imagem do QR sobreposta ao fundo limpo. Ocupa a página inteira como as
+   demais camadas (703×1489), então alinha-se sozinha — só não recebe clique;
+   quem captura o toque é o botão .contact-hotspot--pix-qr por cima dela. */
+.contact-qr-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  z-index: 25;
+}
+
 .contact-hotspot {
   position: absolute;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   pointer-events: auto;
   border: 0;
   padding: 0;
   margin: 0;
   background: transparent;
+  color: #2a1e83;                 /* tom do contorno das pílulas */
+  font: inherit;
   cursor: pointer;
   border-radius: 999px;
   touch-action: manipulation;
   box-shadow: none;
-  transition: none;
+  /* hover/realce suaves — não ocupam espaço extra, só reagem ao mouse */
+  transition: background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.contact-hotspot:focus-visible,
-.contact-hotspot:hover {
+/* As três pílulas (e-mail, whatsapp, instagram) ganham contorno desenhado via
+   CSS, substituindo o contorno que antes vinha da imagem. O QR fica sem borda. */
+.contact-hotspot--email,
+.contact-hotspot--whatsapp,
+.contact-hotspot--instagram {
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+.contact-hotspot:hover,
+.contact-hotspot:focus-visible {
   outline: none;
-  background-color: transparent;
-  box-shadow: none;
+  background-color: rgba(42, 30, 131, 0.08);
 }
 
+.contact-hotspot--email:hover,
+.contact-hotspot--email:focus-visible,
+.contact-hotspot--whatsapp:hover,
+.contact-hotspot--whatsapp:focus-visible,
+.contact-hotspot--instagram:hover,
+.contact-hotspot--instagram:focus-visible {
+  box-shadow: inset 0 0 0 2px currentColor, 0 4px 14px rgba(42, 30, 131, 0.18);
+}
+
+.contact-hotspot:active {
+  transform: scale(0.985);
+}
+
+/* Conteúdo da pílula: ícone + texto, centralizados e proporcionais à pílula.
+   A fonte usa cqw (largura do painel) para escalar junto com o folder, com
+   teto/piso para nunca ficar grande ou minúscula demais. */
+.contact-hotspot__inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+  max-width: 94%;                /* deixa respiro lateral dentro da pílula */
+  font-size: clamp(6px, 4cqw, 15px);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  line-height: 1;
+  pointer-events: none;          /* o clique pertence ao botão, não ao texto */
+}
+
+.contact-hotspot__inner svg {
+  width: 1.35em;
+  height: 1.35em;
+  flex: none;
+}
+
+.contact-hotspot__text {
+  min-width: 0;                  /* habilita o ellipsis dentro do flex */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Posições medidas diretamente das imagens enviadas (bounding box real).
+   Como a arte e os botões têm o mesmo tamanho (703×1489), os retângulos
+   batem com precisão. */
 .contact-hotspot--email {
-  left: 15.1%;
-  top: 37.15%;
-  width: 69.8%;
-  height: 5.25%;
+  left: 15.08%;
+  top: 37.07%;
+  width: 68.28%;
+  height: 5.51%;
 }
 
 .contact-hotspot--whatsapp {
-  left: 15.1%;
-  top: 43.52%;
-  width: 33.3%;
-  height: 5.25%;
+  left: 14.79%;
+  top: 43.38%;
+  width: 33.57%;
+  height: 5.51%;
 }
 
 .contact-hotspot--instagram {
-  left: 50.07%;
-  top: 43.52%;
-  width: 34.57%;
-  height: 5.25%;
+  left: 49.79%;
+  top: 43.38%;
+  width: 33.57%;
+  height: 5.51%;
 }
 
 .contact-hotspot--pix-qr {
-  left: 35%;
-  top: 49%;
-  width: 30%;
-  height: 17.2%;
+  left: 37.55%;
+  top: 49.97%;
+  width: 23.04%;
+  height: 10.88%;
   border-radius: 8px;
-  z-index: 40;
+  z-index: 40;                   /* acima da imagem do QR para captar o clique */
 }
 
 
@@ -441,6 +532,8 @@
   right: var(--pw);
   z-index: 2;
   transform-origin: right center;
+  /* permite dimensionar o texto das pílulas em função da largura do painel (cqw) */
+  container-type: inline-size;
 }
 
 .panel-c::after {
@@ -575,29 +668,30 @@
   transform: scale(1.25);
 }
 
-/* ── RESPONSIVE ──────────────────────────────────────────── */
+/* ── RESPONSIVE ──────────────────────────────────────────────
+   O tamanho do folder é resolvido pela fórmula de --pw no :root,
+   que já equilibra largura e altura da tela. Aqui ficam apenas os
+   ajustes de respiro (padding/gap) e desativações específicas. */
 @media (max-width: 900px) {
-  :root { --pw: clamp(120px, 19vw, 190px); }
   .page { padding: 2rem 0.9rem; gap: 1.25rem; }
 }
 
 @media (max-width: 700px) {
-  :root { --pw: clamp(102px, 23vw, 160px); }
   .page { padding: 1.6rem 0.8rem; gap: 1rem; }
 }
 
 @media (max-width: 550px) {
-  :root { --pw: clamp(92px, 27vw, 140px); }
   .page { padding: 1.25rem 0.7rem; gap: 0.85rem; }
+  /* Em telas de toque o "levantar no hover" não faz sentido. */
   .stage:hover .book-lift { transform: none; }
 }
 
 @media (max-width: 390px) {
-  :root { --pw: clamp(84px, 28vw, 112px); }
   .page { padding: 1rem 0.55rem; gap: 0.7rem; }
 }
 
+/* Telas baixas (paisagem / notebooks curtos): a fórmula já limita pela
+   altura, então só apertamos o respiro vertical. */
 @media (max-height: 760px) {
-  :root { --pw: clamp(86px, 15vh, 145px); }
   .page { padding: 1rem 0.65rem; gap: 0.7rem; }
 }
